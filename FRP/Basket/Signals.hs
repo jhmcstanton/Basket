@@ -1,6 +1,9 @@
+{-# LANGUAGE DataKinds #-}
+
 module FRP.Basket.Signals where
 
 import Control.Applicative
+import Data.HList
 
 type Time = Double
 
@@ -23,5 +26,16 @@ instance Applicative (StateSignal s a) where
                                                                       (g, s'') = gen t s a in (g b, s')
 
 --instance Monad (StateSignal s a) where
---  return = pure
+  --return = pure
+  --(StateSignal sf) >>= f = 
+
+-- s :: * -> * -> * -> *
+{-class Strip s where
+  weave :: (Time -> st -> a -> (b, st)) -> s st a b  
+  --(#)   :: (Time -> st -> a -> (b, st)) -> (Time -> st' -> b -> (c, st')) -> (Time -> (st, st') -> a -> (c, (st, st')))
+  (#) :: s st a b -> s st' b c -> s (st, st') a c -}
   
+(#) :: StateSignal s a b -> StateSignal s' b c -> StateSignal (s, s') a c
+(StateSignal f) # (StateSignal g) = 
+  StateSignal $ \t (st, st') a -> let (b, stNext)  = f t st a 
+                                      (c, stNext') = g t st' b in (c, (stNext, stNext'))
