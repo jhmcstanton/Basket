@@ -29,13 +29,19 @@ instance Applicative (StateSignal s a) where
   --return = pure
   --(StateSignal sf) >>= f = 
 
--- s :: * -> * -> * -> *
-{-class Strip s where
-  weave :: (Time -> st -> a -> (b, st)) -> s st a b  
-  --(#)   :: (Time -> st -> a -> (b, st)) -> (Time -> st' -> b -> (c, st')) -> (Time -> (st, st') -> a -> (c, (st, st')))
-  (#) :: s st a b -> s st' b c -> s (st, st') a c -}
   
 (#) :: StateSignal s a b -> StateSignal s' b c -> StateSignal (s, s') a c
 (StateSignal f) # (StateSignal g) = 
   StateSignal $ \t (st, st') a -> let (b, stNext)  = f t st a 
                                       (c, stNext') = g t st' b in (c, (stNext, stNext'))
+
+getTime :: IO Time
+getTime = undefined
+
+startSystem :: IO a -> StateSignal s a (b, Bool) -> s -> ( (b, Bool) -> IO ()) -> IO ()
+startSystem sampler sf initState out = op initState where
+  op state = do a <- sampler
+                t <- getTime
+                let ((b, completed), state') = runSignal sf t state a
+                if completed then return () else op state'
+
