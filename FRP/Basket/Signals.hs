@@ -1,5 +1,6 @@
 {-# LANGUAGE TypeOperators, DataKinds, 
-             ScopedTypeVariables, TypeFamilies, FlexibleContexts #-}
+             ScopedTypeVariables, TypeFamilies, FlexibleContexts,
+             FlexibleInstances #-}
 
 module FRP.Basket.Signals where
 
@@ -8,6 +9,8 @@ import Prelude hiding ((.), const)
 import Control.Applicative
 import Control.Category
 import Control.Arrow
+import Data.Monoid hiding ((<>))
+import Data.Semigroup
 --import FRP.Basket.Aux.HList
 import Data.HList hiding ((#))
 
@@ -55,11 +58,21 @@ instance Applicative (Signal s a) where
 
 instance Monad (Signal s a) where
   return = pure
-  (Signal f) >>= g = Signal $ \t s a -> let (b, s') = f t s a in runSignal (g b) t s' a
+  (Signal f) >>= g = Signal $ \t s a -> 
+                                let (b, s') = f t s a 
+                                in runSignal (g b) t s' a
+
+instance Semigroup (Signal s a a) where
+  (Signal f) <> (Signal g) = Signal $ \t s a -> let (a' , s') = f t s a in g t s' a'   
+
 instance Category (Signal s) where
   id = Signal $ \_ s a -> (a, s)
   (Signal f) . (Signal g) = Signal $ \t s a -> let (b, s') = g t s a in f t s' b
 
+-- Just like (->), Signal only forms a monoid in Signal s a a..
+instance Monoid (Signal s a a) where
+  mempty = Signal $ \_ s a -> (a, s)
+  mappend = (<>)
 
 -- state doesn't really compose in a reasonable way for this to actually be an arrow..
 instance Arrow (Signal s) where
