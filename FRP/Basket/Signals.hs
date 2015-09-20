@@ -20,14 +20,14 @@ newtype Signal s a b = Signal {
                            runSignal :: Time -> HList s -> a -> (b, HList s)
                        }
 
--- both of these mkSignals type check, but the 2nd one is more easily composable via (#) than this one
-mkSignal :: (Time -> s -> a -> (b, s)) -> Signal (s ': t) a b
+
+{-mkSignal :: (Time -> s -> a -> (b, s)) -> Signal (s ': t) a b
 mkSignal f = Signal $ \t w a -> case w of 
-                                  (HCons s tail) -> let (b, s') = f t s a in (b, HCons s' tail) 
+                                  (HCons s tail) -> let (b, s') = f t s a in (b, HCons s' tail) -}
 
 
-mkSignal' :: (Time -> s -> a -> (b, s)) -> Signal '[s] a b
-mkSignal' f = Signal $ \t st a -> case st of
+mkSignal :: (Time -> s -> a -> (b, s)) -> Signal '[s] a b
+mkSignal f = Signal $ \t st a -> case st of
                                    (HCons s _) -> let (b, s') = f t s a in (b, HCons s' HNil)
 
 -- Pronounced 'weave', this function composes Signals of differing states 
@@ -99,6 +99,5 @@ instance ArrowApply (Signal s) where
 instance ArrowLoop (Signal s) where
   loop (Signal f) = Signal $ \t s a -> let ((b, d), s') = f t s (a, d) in (b, s')
 
-identity :: Signal '[] a a 
-identity = Signal $ \_ s a -> (a, s)
+
 
