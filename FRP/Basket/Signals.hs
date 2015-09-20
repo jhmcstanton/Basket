@@ -27,6 +27,7 @@ mkSignal' :: (Time -> s -> a -> (b, s)) -> Signal '[s] a b
 mkSignal' f = Signal $ \t st a -> case st of
                                    (HCons s _) -> let (b, s') = f t s a in (b, HCons s' HNil)
 
+-- Pronounced 'weave', this function composes Signals of differing states 
 (#) :: forall s s' ss a b c n. (HSplitAt n ss s s', ss ~ HAppendListR s (HAppendListR s' '[]), 
                                 HAppendFD s' '[] s', HAppendFD s s' ss) => 
        Signal s  a b -> Signal s' b c -> Signal ss a c
@@ -70,35 +71,21 @@ instance Arrow (Signal s) where
   (Signal f) &&& (Signal g) = Signal $ \t s a -> let (b, s') = f t s a 
                                                      (d, s'') = g t s a in ((b, d), s) -- which s to use ?
 
-{-
+instance ArrowChoice (Signal s) where
+  left (Signal f) = Signal $ \t s e -> case e of
+                                         Left b -> let (c, s') = f t s b in (Left c, s')
+                                         Right d -> (Right d, s)
+  right (Signal f) = Signal $ \t s e -> case e of
+                                         Left b -> (Left b, s)
+                                         Right d -> let (b, s') = f t s d in (Right b, s')
 
 
-instance ArrowChoice Signal where
-  left (Signal f) = Signal $ \t e -> 
-                               case e of
-                                 Left b  -> Left $ f t b 
-                                 Right d -> Right d
-  right (Signal f) = Signal $ \t e -> 
-                                case e of
-                                  Left d  -> Left d
-                                  Right b -> Right $ f t b
+instance ArrowApply (Signal s) where
+  app = Signal $ \t s (sf, b) -> runSignal sf t s b
 
-instance ArrowApply Signal where
-  app = Signal $ \t (sf, b) -> runSignal sf t b
+instance ArrowLoop (Signal s) where
+  loop (Signal f) = Signal $ \t s a -> let ((b, d), s') = f t s (a, d) in (b, s')
 
-instance ArrowLoop Signal where
-  loop (Signal f) = Signal $ \t a -> let (b, d) = f t (a, d) in b                                       
+identity :: Signal '[] a a 
+identity = Signal $ \_ s a -> (a, s)
 
--- Useful signal functions
-
-const :: a -> Signal a a
-const a = Signal $ \t _ -> a
-
-identity :: Signal a a
-identity = Signal $ \_ x -> x
-
-
--- This doesn't work the way it should
-initLoop :: StatefulSignal s a b -> s -> Signal a b
-initLoop sf s = loop $ second (const s) >>> sf
--}
