@@ -38,8 +38,8 @@ sampleDiscretely dt sampler sf initState sync =
 sample :: IO Time -> IO a -> Signal s a (b, Bool) -> HList s -> (b -> IO ()) -> IO ()
 sample timeSampler sampler sf initState sync = 
   do startTime <- timeSampler
-     let op s = do currentTime <- timeSampler
-                   signalIn    <- sampler
+     let op s = do signalIn    <- sampler
+                   currentTime <- timeSampler                   
                    let ((b, complete), s') = runSignal sf (currentTime - startTime) s signalIn
                    if complete then (sync b) else (sync b) >> op s'
      op initState                 
