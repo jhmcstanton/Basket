@@ -27,10 +27,10 @@ mkSignal f = Signal $ \t st a -> case st of
                                    (HCons s _) -> let (b, s') = f t s a in (b, HCons s' HNil)
 
 -- Pronounced 'weave', this function composes Signals of differing states 
-(#) :: forall s s' ss a b c n. (HSplitAt n ss s s', ss ~ HAppendListR s (HAppendListR s' '[]), 
+(#>) :: forall s s' ss a b c n. (HSplitAt n ss s s', ss ~ HAppendListR s (HAppendListR s' '[]), 
                                 HAppendFD s' '[] s', HAppendFD s s' ss) => 
        Signal s  a b -> Signal s' b c -> Signal ss a c
-(Signal f) # (Signal g) = Signal h where
+(Signal f) #> (Signal g) = Signal h where
   splitIndex = Proxy :: Proxy n
   h :: Time -> HList ss -> a -> (c, HList ss)
   h t wstate a = (c, hConcat $ hBuild fState' gState')
