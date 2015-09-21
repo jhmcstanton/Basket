@@ -9,6 +9,8 @@ import FRP.Basket.Signals.Common
 import Control.Monad.Fix 
 import System.CPUTime 
 
+import Data.Monoid
+
 {- |
   These are the entry point functions providing various types
   of clocking (discrete vs 'continuous' or user provided)
@@ -42,5 +44,16 @@ sample timeSampler sampler sf initState sync =
                    if complete then (sync b) else (sync b) >> op s'
      op initState                 
 
+
+integrateTil :: (Monoid m, Show m) => IO m -> Time -> IO ()
+integrateTil sampler t = sampleContinuously sampler 
+                            (runUntil t (Signal $ \_ s m -> case s of 
+                                                              (HCons m' HNil) -> let m'' = m' `mappend` m 
+                                                                                 in (m'', HCons m'' HNil)))
+                            (HCons mempty HNil) (putStrLn . show)
+
+-- examples
 test :: IO ()
 test = sampleContinuously (return ()) (runUntil 1000 time) HNil (putStrLn . show)
+
+
