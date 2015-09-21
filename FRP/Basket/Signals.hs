@@ -14,7 +14,7 @@ import Data.Semigroup
 --import FRP.Basket.Aux.HList
 import Data.HList hiding ((#))
 
-type Time = Double
+type Time = Integer
 
 newtype Signal s a b = Signal {
                            runSignal :: Time -> HList s -> a -> (b, HList s)
