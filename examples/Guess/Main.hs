@@ -18,7 +18,7 @@ sf :: Signal '[Int] String ((Int, Ordering), Bool)
 sf = reader #> handler
 
 reader :: Signal '[] String Int
-reader = Signal $ \_ s a -> (read a, s)
+reader = liftS read --Signal $ \_ s a -> (read a, s)
 
 handler :: Signal '[Int] Int ((Int, Ordering), Bool)
 handler = mkSignal $ \t s g -> (((s, g `compare` 42), g == 42), s + 1)

@@ -26,6 +26,10 @@ mkSignal :: (Time -> s -> a -> (b, s)) -> Signal '[s] a b
 mkSignal f = Signal $ \t st a -> case st of
                                    (HCons s _) -> let (b, s') = f t s a in (b, HCons s' HNil)
 
+-- this is the same thing as arr, but since I dont know if I'm keeping arrow instances this is here
+liftS :: (a -> b) -> Signal '[] a b
+liftS f = Signal $ \_ s a -> (f a, s)
+
 -- Pronounced 'weave', this function composes Signals of differing states 
 (#>) :: forall s s' ss a b c n. (HSplitAt n ss s s', ss ~ HAppendListR s (HAppendListR s' '[]), 
                                 HAppendFD s' '[] s', HAppendFD s s' ss) => 
