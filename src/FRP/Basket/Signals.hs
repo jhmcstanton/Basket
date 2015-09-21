@@ -21,10 +21,6 @@ newtype Signal s a b = Signal {
                        }
 
 
-{-mkSignal :: (Time -> s -> a -> (b, s)) -> Signal (s ': t) a b
-mkSignal f = Signal $ \t w a -> case w of 
-                                  (HCons s tail) -> let (b, s') = f t s a in (b, HCons s' tail) -}
-
 
 mkSignal :: (Time -> s -> a -> (b, s)) -> Signal '[s] a b
 mkSignal f = Signal $ \t st a -> case st of
