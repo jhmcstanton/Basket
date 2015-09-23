@@ -33,6 +33,18 @@ The other issue I bumped into with Yampa came up when modeling systems with larg
 is something that Yampa actually does quite nicely, using the ```ArrowLoop``` type class. The methodology
 used in Yampa allows the user to create an ```SF (a, s) (b, s)``` and turn it into ```SF a b``` by providing
 an initial state. This actually works quite nicely and allows the user to compose arbitrary signals of varying
-state simply by inlining a call to change ```SF (a, s) (b, s)``` to ```SF a b```. 
+state simply by inlining a call to change ```SF (a, s) (b, s)``` to ```SF a b```. However, given enough
+state in the system this can be slightly tedious.
 
-To be continued...
+This is where ```(Time -> s -> a -> (b, s))``` comes in. Given that ```Signal``` is parameterized over 
+```s a b```   then ``` Signal s ``` becomes an Arrow instance of two Signals that share state. Additionally,
+signals of differing state can be composed as well:
+
+```Haskell
+(#>) :: Signal s a b -> Signal s' b c -> Signal s'' a c
+```
+Again, the types have been modified for the innocent. This ultimately allows the top level Signal to represent
+all of the state of the entire system explicitly in main and for state to be passed into the system only once.
+
+
+... Add Signal diagrams for comparison 
