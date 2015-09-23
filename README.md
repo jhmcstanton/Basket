@@ -38,7 +38,8 @@ state in the system this can be tedious.
 
 This is where ```(Time -> s -> a -> (b, s))``` comes in. Given that ```Signal``` is parameterized over 
 ```s a b```   then ``` Signal s ``` becomes an Arrow instance, and Signals that share state can compose together
-via typical Arrow combinators. 
+via typical Arrow combinators. Signals that vary over state can still be composed together using 
+the function "weave":
 
 ```Haskell
 (#>) :: Signal s a b -> Signal s' b c -> Signal s'' a c
@@ -46,5 +47,25 @@ via typical Arrow combinators.
 Again, the types have been modified for the innocent. This ultimately allows the top level Signal to represent
 all of the state of the entire system explicitly in main and for state to be passed into the system only once.
 
+### What is s'' though?
+A naive implementation of ```(#)>``` looks like
 
-... Add Signal diagrams for comparison 
+```Haskell
+infixr #>
+(#>) :: Signal s a b -> Signal s' b c -> Signal (s, s') a c
+```
+and this was indeed the original implementation when all the types provided thus far were the actual types
+used. However, this doesn't scale well. Each subsequent call to ```(#>)``` results in a further nested pair 
+which, ignoring any performance concerns, is awkward and unwieldy at the top level when the initial state 
+needs to be passed in. @roboguy13 pointed out that this looks similar to an [HList](https://hackage.haskell.org/package/HList). This idea led to the final type:
+
+```Haskell
+newtype Signal s a b = Signal (Time -> HList s -> a -> (b, HList s))
+```
+
+This newtype allows ```(#>)``` to be written as (with some more liberties taken)
+```Haskell
+(#>) :: (..., HConcat s s' s'') => Signal s a b -> Signal s' b c -> Signal s'' a c
+```
+
+... Add Signal diagrams for comparison ... also maybe move this to a wiki..
