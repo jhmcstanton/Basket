@@ -9,7 +9,8 @@ import FRP.Basket.Signals.Common
 import Control.Monad.Fix 
 import System.CPUTime 
 
-import Data.Monoid
+
+import Data.Monoid -- This can be pulled once the integration sample is moved or removed
 
 {- |
   These are the entry point functions providing various types
