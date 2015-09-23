@@ -30,15 +30,15 @@ with Arrow methods nicely.
 
 ## (Time -> a -> b) becomes (Time -> s -> a -> (b, s))
 The other issue I bumped into with Yampa came up when modeling systems with large amounts of state. This is 
-is something that Yampa actually does quite nicely, using the ```ArrowLoop``` type class. The methodology
+is something that Yampa actually does quite nicely. The methodology
 used in Yampa allows the user to create an ```SF (a, s) (b, s)``` and turn it into ```SF a b``` by providing
 an initial state. This actually works quite nicely and allows the user to compose arbitrary signals of varying
 state simply by inlining a call to change ```SF (a, s) (b, s)``` to ```SF a b```. However, given enough
-state in the system this can be slightly tedious.
+state in the system this can be tedious.
 
 This is where ```(Time -> s -> a -> (b, s))``` comes in. Given that ```Signal``` is parameterized over 
-```s a b```   then ``` Signal s ``` becomes an Arrow instance of two Signals that share state. Additionally,
-signals of differing state can be composed as well:
+```s a b```   then ``` Signal s ``` becomes an Arrow instance, and Signals that share state can compose together
+via typical Arrow combinators. 
 
 ```Haskell
 (#>) :: Signal s a b -> Signal s' b c -> Signal s'' a c
