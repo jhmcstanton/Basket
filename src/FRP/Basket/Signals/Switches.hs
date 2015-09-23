@@ -40,6 +40,7 @@ monoSwitch sf handler = Signal $ \t s a ->
 {- | This function allows a 'regulator' to see the output of a signal along with it's 
      internal state to perform some time of regulatory transformation on its output.
 -}
+
 regulate :: forall s s' ss a b c n. 
             (HSplitAt n ss s s', 
              ss ~ HAppendListR s (HAppendListR s' '[]), 
@@ -51,3 +52,11 @@ regulate sf regulator =
                                   (b, sfState')     = runSignal sf t sfState a
                                   (c, rState')      = runSignal regulator t rState (b, sfState')
                               in (c, hConcat $ hBuild sfState' rState')
+
+
+monoPSwitch :: Signal s a (Either b c) -> Signal s b d -> Signal s c d -> Signal s a d
+monoPSwitch main left right = 
+  Signal $ \t s a -> let (r, s') = runSignal main t s a in
+                     case r of
+                       Left  b  -> runSignal left t s' b
+                       Right c -> runSignal right t s' c
