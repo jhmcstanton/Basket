@@ -6,6 +6,8 @@ import FRP.Basket.Signals
 import Control.Applicative
 import Prelude hiding (const)
 
+import Data.HList
+
 identity :: Signal '[] a a 
 identity = Signal $ \_ s a -> (a, s)
 
@@ -25,3 +27,9 @@ deltaT = mkSignal $ \t s _ -> (t - s, t)
 runUntil :: Time -> Signal s a b -> Signal s a (b, Bool)
 runUntil t sf = Signal $ \t' s a -> let (b, s') = runSignal sf t' s a 
                                     in if t' < t then ((b, False), s') else ((b, True), s') 
+
+-- This probably won't be needed often, but it is provided for the sake of completeness
+getState :: Signal s a (HList s)
+getState = Signal $ \_ s _ -> (s, s)
+
+
