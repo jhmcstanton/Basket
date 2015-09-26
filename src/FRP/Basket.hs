@@ -2,7 +2,7 @@
 
 module FRP.Basket where
 
-import Data.HList hiding ((#))
+import Data.HList 
 import FRP.Basket.Signals
 import FRP.Basket.Signals.Common
 
@@ -40,6 +40,7 @@ sampleDiscretely dt sampler sf initState sync =
                       if complete then sync b complete else sync b complete >> op s' currentTime
      op initState 0
 
+
 sample :: IO Time -> IO a -> Signal s a (b, Bool) -> HList s -> (b -> Bool -> IO ()) -> IO ()
 sample timeSampler sampler sf initState sync = 
   do startTime <- timeSampler
@@ -50,15 +51,6 @@ sample timeSampler sampler sf initState sync =
      op initState                 
 
 
-integrateTil :: (Monoid m, Show m) => IO m -> Time -> IO ()
-integrateTil sampler t = sampleContinuously sampler 
-                            (runUntil t (Signal $ \_ s m -> case s of 
-                                                              (HCons m' HNil) -> let m'' = m' `mappend` m 
-                                                                                 in (m'', HCons m'' HNil)))
-                            (HCons mempty HNil) (\b _ -> putStrLn $ show b)
-
 -- examples
 test :: IO ()
 test = sampleContinuously (return ()) (runUntil 1000 time) HNil (\b _ -> putStrLn $ show b)
-
-

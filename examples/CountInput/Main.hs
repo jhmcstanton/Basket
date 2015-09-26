@@ -8,7 +8,7 @@ import FRP.Basket.Signals
 import FRP.Basket.Signals.Common
 
 import Data.Map.Strict
-import Data.HList hiding ((#))
+import Data.HList
 
 import GHC.IO.Handle
 import System.IO
@@ -20,11 +20,11 @@ sampler :: IO Char
 sampler = hSetBuffering stdin NoBuffering >> getChar
 
 processor :: Signal '[(Map Char Int)] Char ((Time, Map Char Int), Bool)
-processor = runUntil 100 $ mkSignal $ \t s a -> let s' = alter update a s in ((t, s'), s')
+processor = runUntil 100 $ mkSignal $ \t a s -> let s' = alter update a s in ((t, s'), s')
   where
     update :: Maybe Int -> Maybe Int
     update Nothing   = Just 1
     update (Just n)  = Just $ n + 1
 
-out :: Show a => a -> IO ()
-out = putStrLn . show
+out :: (Time, Map Char Int) -> Bool -> IO ()
+out p _ = print p

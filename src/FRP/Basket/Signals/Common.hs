@@ -1,35 +1,34 @@
-{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DataKinds, TypeOperators #-}
 
 module FRP.Basket.Signals.Common where
 
 import FRP.Basket.Signals
 import Control.Applicative
+import Control.Arrow
+import Control.Monad.Reader
+import Control.Monad.State
 import Prelude hiding (const)
 
 import Data.HList
 
 identity :: Signal '[] a a 
-identity = Signal $ \_ s a -> (a, s)
+identity = returnA
 
 const :: c -> Signal '[] a c
-const = pure
-
--- This should usually not be needed, but is here for completeness
-time :: Signal '[] a Time
-time = Signal $ \t s _ -> (t, s)
+const c = arr (\_ -> c)
 
 -- This returns the time difference 
 -- NOTE, as with all other signals this will need an initial state value provided for it (0, of course). 
 deltaT :: Signal '[Time] a Time
-deltaT = mkSignal $ \t s _ -> (t - s, t)
+deltaT = mkSignal $ \t _ s -> (t - s, t)
 
 -- Maybe this should move to another module
+
 runUntil :: Time -> Signal s a b -> Signal s a (b, Bool)
-runUntil t sf = Signal $ \t' s a -> let (b, s') = runSignal sf t' s a 
-                                    in if t' < t then ((b, False), s') else ((b, True), s') 
+runUntil t sf = sf >>> (Kleisli $ \b -> ask >>= (\t' -> if t' < t then return (b, False) else return (b, True)))
 
--- This probably won't be needed often, but it is provided for the sake of completeness
-getState :: Signal s a (HList s)
-getState = Signal $ \_ s _ -> (s, s)
+runForever :: Signal s a b -> Signal s a (b, Bool)
+runForever sf = sf >>> (Kleisli $ \b -> return (b, False))
 
-
+time :: Signal s a Time
+time = Kleisli $ \_ -> ask

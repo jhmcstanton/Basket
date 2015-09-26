@@ -7,6 +7,7 @@ import FRP.Basket.Signals
 
 import Data.HList
 import Data.Monoid
+import Control.Arrow
 
 main :: IO ()
 main = sampleContinuously prompt sf st results
@@ -18,10 +19,10 @@ sf :: Signal '[Int] String ((Int, Ordering), Bool)
 sf = reader #> handler
 
 reader :: Signal '[] String Int
-reader = liftS read --Signal $ \_ s a -> (read a, s)
+reader = arr read --Signal $ \_ s a -> (read a, s)
 
 handler :: Signal '[Int] Int ((Int, Ordering), Bool)
-handler = mkSignal $ \t s g -> (((s, g `compare` 42), g == 42), s + 1)
+handler = mkSignal $ \t g s -> (((s, g `compare` 42), g == 42), s + 1)
 
 st :: HList '[Int]
 st = hEnd $ hBuild 1
